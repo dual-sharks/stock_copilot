@@ -2,9 +2,11 @@ import streamlit as st
 import time
 from epsilon_crew import create_crew, route_agent_to_tool_and_summarize, researcher
 from tooling.polygon_tool import PolygonAPITool
+from tooling.SEC_tool import SECApiTool  # Import the SEC API tool
 
 # Initialize the tools
 polygon_tool = PolygonAPITool()
+sec_tool = SECApiTool()
 
 # Function to generate a detailed report using the Crew framework
 def generate_detailed_report(topic):
@@ -21,7 +23,7 @@ def main():
     # User selection for data type
     data_type = st.radio(
         "Choose data type:",
-        ("Detailed Report", "Quick Ticker Data", "Market Trends")
+        ("Detailed Report", "Quick Ticker Data", "Market Trends", "SEC Filing Data")
     )
 
     # User input for the topic or ticker symbol
@@ -72,6 +74,29 @@ def main():
                     st.markdown(market_trends)
                 else:
                     st.error(market_trends)
+
+            elif data_type == "SEC Filing Data":
+                # Fetch SEC filing data using the SECApiTool
+                st.write("Fetching SEC filing data...")
+                filing_data = sec_tool.get_filing_data(user_input.upper())
+                
+                if 'error' not in filing_data and "filings" in filing_data:
+                    st.write("Recent SEC Filings:")
+                    for idx, filing in enumerate(filing_data["filings"]):
+                        filing_type = filing.get('formType', 'N/A')
+                        filed_at = filing.get('filedAt', 'N/A')
+                        filing_url = filing.get('linkToTxt', '#')
+
+                        st.markdown(f"**{idx + 1}. {filing_type} filed on {filed_at}**")
+                        st.markdown(f"[View Filing]({filing.get('linkToFilingDetails', '#')})")
+
+                        if filing_url:
+                            with st.spinner(f"Summarizing filing {idx + 1}..."):
+                                summary = sec_tool.summarize_filing_content(filing_url)
+                                st.markdown(f"**Summary**: {summary}")
+                                st.markdown("---")
+                else:
+                    st.error(filing_data.get('error', 'No filings found.'))
         else:
             st.warning("Please enter a ticker symbol or topic before generating the report.")
 

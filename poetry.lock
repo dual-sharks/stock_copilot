@@ -5352,6 +5352,20 @@ files = [
 ]
 
 [[package]]
+name = "sec-api"
+version = "1.0.25"
+description = "SEC EDGAR Filings API"
+optional = false
+python-versions = "*"
+files = [
+    {file = "sec-api-1.0.25.tar.gz", hash = "sha256:52a50a1ce54ded1dfd7d384dc9a2671bf36d505b820d53a13a27e3365270e1e2"},
+    {file = "sec_api-1.0.25-py3-none-any.whl", hash = "sha256:75482460c90492dd4fd46d584c56e33bd61cdef61ce3209e51611f8106f24537"},
+]
+
+[package.dependencies]
+requests = "*"
+
+[[package]]
 name = "selenium"
 version = "4.26.1"
 description = "Official Python bindings for Selenium WebDriver"
@@ -6670,4 +6684,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "3.12.7"
-content-hash = "63ff2a91cc7ab052b4949160ed301708685ea48e8bdee91858fd095128679eb2"
+content-hash = "af454eb61177f787bcb57721a9608868fcf97620fcd49a6667e32688fcf16c4d"

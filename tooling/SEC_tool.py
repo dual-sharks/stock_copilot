@@ -1,3 +1,5 @@
+import requests
+
 class SECApiTool:
     def __init__(self):
         self.base_url = "https://api.sec-api.io"  # SEC-API endpoint
