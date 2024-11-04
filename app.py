@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 from epsilon_crew import create_crew, route_agent_to_tool_and_summarize, researcher
-from tools import PolygonAPITool
+from tooling.polygon_tool import PolygonAPITool
 
 # Initialize the tools
 polygon_tool = PolygonAPITool()
