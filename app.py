@@ -1,41 +1,69 @@
 import streamlit as st
 import time
 from epsilon_crew import create_crew, route_agent_to_tool_and_summarize, researcher
+from tools import PolygonAPITool
+
+# Initialize the Polygon API tool
+polygon_tool = PolygonAPITool()
+
+# Function to generate a detailed report using the Crew framework
+def generate_detailed_report(topic):
+    """Generate a detailed report using the Crew framework."""
+    crew = create_crew(topic, researcher)
+    result = route_agent_to_tool_and_summarize(researcher, topic)
+    return result
 
 # Streamlit app function
 def main():
-    st.title("Dynamic Report Generator with Stock Analysis")
-    st.write("Enter a topic for which you want a report to be generated. For stock questions, ensure to include the ticker symbol.")
+    st.title("Stock Analysis and Data Hub")
+    st.write("Select the type of data you want to view:")
 
-    # User input for the topic
-    user_input = st.text_input("Topic", placeholder="Enter a topic, e.g., 'Stock analysis for AAPL'")
+    # User selection for data type
+    data_type = st.radio(
+        "Choose data type:",
+        ("Detailed Report", "Quick Ticker Data")
+    )
 
-    if st.button("Generate Report"):
+    # User input for the topic or ticker symbol
+    user_input = st.text_input("Enter your ticker symbol or topic", placeholder="e.g., 'AAPL' or 'AAPL analysis'")
+
+    if st.button("Generate"):
         if user_input:
-            crew = create_crew(user_input, researcher)
-            result = route_agent_to_tool_and_summarize(researcher, user_input)
+            if data_type == "Detailed Report":
+                # Use the Crew framework for complex report generation
+                st.write("Generating detailed report...")
+                result = generate_detailed_report(user_input)
 
-            # Ensure result is extracted as a string from the CrewOutput object
-            if hasattr(result, 'content'):
-                report_text = result.content  # Extract content from CrewOutput object
-            else:
-                report_text = str(result)  # Convert to string in case it's not plain text
+                if result and hasattr(result, 'content'):
+                    report_text = result.content
+                else:
+                    report_text = str(result)
 
-            if report_text:
-                st.write("Generated Summary Report:")
-                placeholder = st.empty()  # Create an empty container for progressive display
+                if report_text:
+                    st.write("Generated Summary Report:")
+                    placeholder = st.empty()
 
-                words = report_text.split()
-                full_text = ""
-                for word in words:
-                    full_text += word + " "
-                    placeholder.markdown(f"{full_text}")  # Update the placeholder with markdown
-                    time.sleep(0.05)  # Adjust the speed of the display (e.g., 0.05 seconds)
+                    words = report_text.split()
+                    full_text = ""
+                    for word in words:
+                        full_text += word + " "
+                        placeholder.markdown(f"{full_text}")
+                        time.sleep(0.05)  # Adjust speed as needed
+                else:
+                    st.warning("No relevant data found.")
 
-            else:
-                st.warning("No relevant data found.")
+            elif data_type == "Quick Ticker Data":
+                # Fetch ticker data quickly using the Polygon API tool
+                st.write("Fetching quick ticker data...")
+                ticker_data = polygon_tool.get_stock_info(user_input.upper())
+
+                if 'error' not in ticker_data:
+                    st.write("Quick Ticker Data:")
+                    st.json(ticker_data)
+                else:
+                    st.error(ticker_data['error'])
         else:
-            st.warning("Please enter a topic before generating the report.")
+            st.warning("Please enter a ticker symbol or topic before generating the report.")
 
 if __name__ == "__main__":
     main()

@@ -109,3 +109,9 @@ def create_crew(topic, agent):
         process=Process.sequential  # Use a valid process type
     )
     return crew
+
+def generate_detailed_report(topic):
+    """Generate a detailed report using the Crew framework."""
+    crew = create_crew(topic, researcher)
+    result = route_agent_to_tool_and_summarize(researcher, topic)
+    return result
