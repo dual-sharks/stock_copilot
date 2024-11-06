@@ -13,7 +13,7 @@ class SECApiTool:
         query = {
             "query": f"ticker:{ticker}",
             "from": "0",
-            "size": "5",  # Adjust as needed for more or fewer results
+            "size": "5",
             "sort": [{"filedAt": {"order": "desc"}}]
         }
         try:
@@ -47,3 +47,5 @@ class SECApiTool:
             return summary.content if hasattr(summary, 'content') else str(summary)
         except Exception as e:
             return f"Error summarizing filing content: {str(e)}"
+        
+    

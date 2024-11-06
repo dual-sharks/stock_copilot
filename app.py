@@ -46,8 +46,7 @@ def main():
             if data_type == "Detailed Report":
                 st.write("Generating detailed report...")
                 result = generate_detailed_report(user_input)
-                response_text = result.content if result and hasattr(result, 'content') else "No relevant data found."
-                st.markdown(f"**Assistant:** {response_text}")
+                st.markdown(f"**Assistant:** {result}")
 
             elif data_type == "Quick Ticker Data":
                 st.write("Fetching quick ticker data...")
@@ -68,7 +67,7 @@ def main():
                 else:
                     st.error(response_text)
                 st.markdown(f"**Assistant:** {response_text}")
-
+        
             elif data_type == "SEC Filing Data":
                 st.write("Fetching SEC filing data...")
                 filing_data = sec_tool.get_filing_data(user_input.upper())
