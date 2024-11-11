@@ -1,0 +1,6 @@
+requests
+pydantic
+streamlit
+sec_api
+datetime
+langchain_openai
