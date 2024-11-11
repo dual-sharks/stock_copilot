@@ -1,7 +1,6 @@
 
 import streamlit as st
 import time
-from stock_copilot.legacy.epsilon_crew import create_crew, route_agent_to_tool_and_summarize, researcher
 from tooling.polygon_tool import PolygonAPITool
 from tooling.SEC_tool import SECApiTool  # Import the SEC API tool
 from symbol import extract_stock_symbol

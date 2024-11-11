@@ -1,13 +1,13 @@
 import requests
 from sec_api import QueryApi
 from langchain_openai import ChatOpenAI
-import re
+import os
 
 class SECApiTool:
     def __init__(self):
-        self.api_key = "POLYGONAPIKEY"  # Replace with your actual SEC API key
+        self.api_key = os.getenv("SEC_API_KEY")  # Replace with your actual SEC API key
         self.query_api = QueryApi(api_key=self.api_key)
-        self.llm = ChatOpenAI(model_name="gpt-4", temperature=0.7, api_key="OPENAIAPKIKEY")
+        self.llm = ChatOpenAI(model_name="gpt-4", temperature=0.7, api_key=os.getenv("OPENAI_API_KEY"))
 
     def get_filing_data(self, ticker):
         """Fetch recent SEC filings and provide a summary using JSON metadata instead of full content."""

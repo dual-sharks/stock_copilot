@@ -1,9 +1,6 @@
 requests
-os
 pydantic
 streamlit
-sec-api
-re
-json
+sec_api
 datetime
 langchain_openai

@@ -1,7 +1,8 @@
 from langchain_openai import ChatOpenAI
+import os
 
 # Initialize LLM for symbol extraction
-llm = ChatOpenAI(model_name="gpt-4", temperature=0, api_key="youapikey")
+llm = ChatOpenAI(model_name="gpt-4", temperature=0, api_key=os.getenv("OPENAI_API_KEY"))
 
 # Function to extract stock symbol from company name
 def extract_stock_symbol(company_name):
