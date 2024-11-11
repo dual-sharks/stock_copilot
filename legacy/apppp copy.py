@@ -6,7 +6,6 @@ from tooling.polygon_tool import PolygonAPITool
 from tooling.SEC_tool import SECApiTool  # Import the SEC API tool
 from symbol import extract_stock_symbol
 from report import generate_detailed_report
-import datetime
 
 # Initialize the tools
 polygon_tool = PolygonAPITool()
@@ -45,14 +44,14 @@ st.set_page_config(page_title="Stock Analysis and Data Hub", page_icon="💹", l
 st.title("Stock Analysis and Data Hub")
 
 # Sidebar for tab selection and company list
-tab_selection = st.sidebar.selectbox("Select a Tab", ["Stock Analysis", "Options Data", "General Questions"])
+tab_selection = st.sidebar.selectbox("Select a Tab", ["Stock Analysis", "Option", "General Questions"])
+
 
 
 # Display company input bar only for Stock Analysis and Option tabs
-if tab_selection in ["Stock Analysis", "Options Data"]:
-    company_name_input = st.text_input("Enter Company Name", key="widget", placeholder="Apple, Google, Amazon,...", on_change=submit_company)
-
-
+if tab_selection in ["Stock Analysis", "Option"]:
+    st.text_input("Enter Company Name", key="widget", placeholder="Apple, Google, Amazon,...", on_change=submit_company)
+    
 # Helper function to update conversation history for a specific company
 def update_conversation_history(company, role, content):
     if company not in st.session_state["conversation"]:
@@ -122,7 +121,7 @@ if tab_selection == "Stock Analysis":
         # Selecting data type for the chosen company
         data_type = st.radio(
             "Choose data type:",
-            ("Detailed Report", "Quick Ticker Data", "Market Trends", "SEC Filing Data",)
+            ("Detailed Report", "Quick Ticker Data", "Market Trends", "SEC Filing Data")
         )
 
         if st.button("Generate"):
@@ -237,116 +236,35 @@ if tab_selection == "Stock Analysis":
                     st.warning("Fetching SEC filing data...")
                     filing_data = sec_tool.get_filing_data(stock_symbol.upper())
 
-                    if 'error' not in filing_data:
+                    if 'error' not in filing_data and "filings" in filing_data:
                         response_text = "Recent SEC Filings:\n"
                         
-                        for idx, filing in enumerate(filing_data):
-                            filing_url = filing.get('url', '#')
-                            filing_summary = filing.get('summary', 'No summary available.')
-
-                            # Display filing link with the summary below it
-                            st.markdown(f"**{idx+1}. [View Filing]({filing_url})**")
-                            st.write(filing_summary)
+                        for idx, filing in enumerate(filing_data["filings"]):
+                            filing_type = filing.get('formType', 'N/A')
+                            filed_at = filing.get('filedAt', 'N/A')
+                            filing_url = filing.get('linkToFilingDetails', '#')
                             
-                            # Append to response_text for updating conversation history
-                            response_text += f"**{idx+1}. [View Filing]({filing_url})**\n{filing_summary}\n\n"
+                            # Display filing header
+                            filing_summary = f"**{idx+1}. {filing_type}** - Filed at {filed_at} [View filing]({filing_url})"
+                            st.markdown(filing_summary)
+                            response_text += f"{filing_summary}\n"
 
-                        # Update conversation history
+                            # Optional: Fetch full text of filing and display (controlled by a switch or button)
+                            if st.button(f"Show full text for filing {idx+1}"):
+                                filing_text = sec_tool.get_filing_full_text(filing_url)
+                                st.write(filing_text)
+
                         update_conversation_history(selected_company, "assistant", response_text)
                     else:
-                        st.error(filing_data["error"])
+                        response_text = "No recent filings available or an error occurred."
+                        st.error(response_text)
 
+                # Update conversation history with assistant's response
+                #update_conversation_history(selected_company, "assistant", response_text)
 
-elif tab_selection == "Options Data":
-    # Display the list of companies directly on the sidebar
-    if st.session_state["companies"]:
-        selected_company = st.sidebar.radio(
-            "Select a Company", 
-            list(st.session_state["companies"].keys()), 
-            key="company_selectbox_options",
-            index=list(st.session_state["companies"].keys()).index(st.session_state["active_company"]) if st.session_state["active_company"] else 0
-        )
-    else:
-        selected_company = None
-        st.sidebar.write("No companies available.")
-
-    if selected_company:
-        # Change subheader color to dark red
-        st.markdown(f"<h3 style='color: #32CD32;'>{selected_company} 🏢</h3> ", unsafe_allow_html=True)
-        display_conversation_history(selected_company, visible=True)
-
-        # Adding a button to delete conversation history and remove from sidebar
-        delete_button = st.button(f"Delete {selected_company}'s Chat History and Remove")
-        if delete_button:
-            delete_conversation_history(selected_company)
-
-        stock_symbol = extract_stock_symbol(selected_company)
-        if stock_symbol:
-            st.write(f"Stock symbol for {selected_company} is {stock_symbol}.")
-
-            # Options specific inputs
-            expiration_date = st.date_input("Select Expiration Date", min_value=datetime.date.today())
-            expiration_date_str = expiration_date.strftime("%y%m%d")  # Format: YYMMDD
-
-            option_type = st.selectbox("Select Option Type", ["C", "P"], index=0)  # 'C' for Call, 'P' for Put
-            strike_price = st.number_input("Enter Strike Price (in whole dollars)", min_value=1)
-
-            if st.button("Generate"):
-                st.warning("Fetching options data...")
-                
-                # Get options data
-                options_data = polygon_tool.get_options_data(
-                    stock_symbol.upper(),
-                    expiration_date_str,
-                    option_type,
-                    strike_price
-                )
-                
-                if 'error' not in options_data:
-                    # Create two columns: one for JSON and one for the LLM-generated text
-                    col1, col2 = st.columns(2)
-
-                    with col1:
-                        st.subheader("Options Data")
-                        st.json(options_data)  # Display raw JSON data
-
-                    with col2:
-                        st.subheader("Summary")
-                        # Send JSON data to LLM to generate a textual summary
-                        options_summary_prompt = (
-                            f"Here is the options data for {stock_symbol}:\n\n{str(options_data)}\n"
-                            "Generate a concise, readable summary that explains the key details of this option contract. "
-                            "Include details about the strike price, option type (call/put), expiration, and any notable "
-                            "price movements in the data. Your output MUST have each sentence in a line to have more line "
-                            "breaks. Avoid paragraphs and make sure every line starts with a dash -."
-                        )
-                        
-                        # Get the summary from LLM
-                        summary_response = polygon_tool.llm(options_summary_prompt)
-                        summary_text = summary_response.content if hasattr(summary_response, 'content') else str(summary_response)
-
-                        # Stream the response character by character
-                        response_placeholder = st.empty()
-                        streamed_text = ""
-                        for char in summary_text:
-                            streamed_text += char
-                            response_placeholder.write(streamed_text)
-                            time.sleep(0.005)  # Adjust for streaming effect
-
-                        # Once streaming is done, clear and display final response in a copyable format
-                        response_placeholder.empty()
-                        response_copyable = st.empty()
-                        paragraph_format = streamed_text.replace("\n", "\n\n")
-                        response_copyable.code(paragraph_format, language='markdown')
-                        update_conversation_history(selected_company, "assistant", streamed_text)
-                        st.write("----------------------------------------")
-                else:
-                    st.error(options_data["error"])
-                
-        else:
-            st.error("Stock symbol not found. Please ensure you have entered a valid company.")
-
-
+# Option Tab
+elif tab_selection == "Option":
+    st.write("Options-related functionalities will be added soon.")
 
 elif tab_selection == "General Questions":
     st.sidebar.subheader("General Questions")

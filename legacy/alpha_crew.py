@@ -2,7 +2,7 @@ from textwrap import dedent
 from crewai import Agent, Task, Crew
 import os
 from langchain_openai import ChatOpenAI
-os.environ["OPENAI_API_KEY"] = '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'
+os.environ["OPENAI_API_KEY"] = 'openai'
 llm = OpenAIGPT4 = ChatOpenAI(model_name="gpt-4", temperature=0.7)
 fingus = Agent(
             role="Define agent 1 role here",

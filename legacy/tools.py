@@ -9,7 +9,7 @@ class PolygonAPIToolArgsSchema(BaseModel):
 
 class PolygonAPITool:
     def __init__(self):
-        self.api_key = "BTZo73LLIZlgL0yOWLQbvGlQOoMpW3Un"
+        self.api_key = "polygonapi"
         self.llm = ChatOpenAI(model_name="gpt-4", temperature=0.7)
         self.name = "PolygonAPITool"
         self.args_schema = PolygonAPIToolArgsSchema  # Define the args_schema attribute

@@ -1,0 +1,9 @@
+requests
+os
+pydantic
+streamlit
+sec-api
+re
+json
+datetime
+langchain_openai

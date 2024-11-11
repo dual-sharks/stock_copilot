@@ -1,14 +1,14 @@
 from textwrap import dedent
 from crewai import Agent, Task, Crew, Process
 from langchain_openai import ChatOpenAI
-from tooling.polygon_api_tool import PolygonAPITool
-from utils import route_agent_to_tool_and_summarize
+from tooling.polygon_tool import PolygonAPITool
+from stock_copilot.legacy.utils import route_agent_to_tool_and_summarize
 
 # Initialize the Polygon API tool
 polygon_tool = PolygonAPITool()
 
 # Set up the LLM
-llm = ChatOpenAI(model_name="gpt-4", temperature=0.7)
+llm = ChatOpenAI(model_name="gpt-4o", temperature=0.7, api_key="openaiapi")
 
 # Initialize agents
 manager = Agent(
@@ -52,7 +52,8 @@ def create_crew(topic, agent):
     crew = Crew(
         agents=[agent],
         tasks=[task],
-        process=Process.sequential
+        process=Process.sequential,
+        llm=llm
     )
     return crew
 

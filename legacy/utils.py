@@ -1,6 +1,26 @@
 import re
 import json
-from crewai import Task, Crew, Process
+from crewai import Task, Crew, Agent, Process
+from langchain_openai import ChatOpenAI
+from tooling.polygon_tool import PolygonAPITool
+
+
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(
+    model_name="gpt-4",
+    temperature=0.7,
+    api_key="openaiapi"  # Replace with your actual OpenAI API key
+)
+
+# Define the researcher agent with the tool for stock data
+researcher = Agent(
+    role="Researcher",
+    goal="Fetch and analyze stock data or provide comprehensive topic responses.",
+    backstory="A finance-focused agent capable of handling complex financial data.",
+    tools=[PolygonAPITool()],
+    llm=llm
+)
 
 # Function to extract stock symbols from task descriptions
 def extract_stock_symbol(task_description):
@@ -31,7 +51,8 @@ def route_agent_to_tool_and_summarize(agent, task_description):
         crew = Crew(
             agents=[agent],
             tasks=[task],
-            process=Process.sequential
+            process=Process.sequential,
+            llm=llm
         )
         
         result = crew.kickoff()
@@ -60,3 +81,9 @@ def summarize_json(agent, json_data):
 
     result = crew.kickoff()
     return result if result else "No relevant data found or unable to process."
+
+# Wrapper function for Streamlit integration
+def generate_detailed_report(topic):
+    """Generate a detailed report using the Crew framework."""
+    result = route_agent_to_tool_and_summarize(researcher, topic)
+    return result
